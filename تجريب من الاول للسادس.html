@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة تجريبية للاختبارات التعليمية التفاعلية - المدرس خالد سمارة</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * { font-family: 'Tajawal', 'Cairo', sans-serif; user-select: none; }
+        body { background-color: #F4F7F6; color: #2C3E50; min-height: 100vh; }
+        .custom-card { background-color: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 1.25rem; transition: all 0.2s; }
+        .play-btn { background-color: #2563EB; color: #FFF; border-radius: 0.85rem; transition: all 0.15s; }
+        .play-btn:hover { background-color: #1D4ED8; transform: translateY(-2px); }
+        .play-btn:active { transform: translateY(1px); }
+        .grade-active { background-color: #0D9488 !important; color: #FFFFFF !important; border-color: #0F766E !important; }
+        .grade-inactive { background-color: #FFFFFF; color: #374151; border: 1px solid #D1D5DB; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between overflow-x-hidden">
+
+    <!-- HEADER NAVIGATION -->
+    <header class="shadow-md p-4 bg-slate-800 text-white sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            
+            <div class="flex items-center gap-3 cursor-pointer" onclick="handleNavigation(() => goToHome())">
+                <div class="w-11 h-11 rounded-xl bg-teal-600 flex items-center justify-center text-2xl shadow">
+                    🎓
+                </div>
+                <div>
+                    <h1 class="text-base md:text-xl font-extrabold flex items-center gap-2">
+                        منصة المدرس خالد سمارة التعليمية
+                        <span id="active-grade-badge" class="bg-teal-500 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">
+                            الصف الأول
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-300">اختبارات مدرسية علمية </p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="bg-slate-700 text-amber-300 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 text-xs md:text-sm border border-slate-600">
+                    <i class="fa-solid fa-star text-amber-400"></i>
+                    <span id="global-stars">0</span> <span class="text-slate-300 text-xs">نقطة</span>
+                </div>
+
+                <select id="class-select" onchange="handleNavigation(() => switchClass(this.value))" class="bg-teal-600 text-white font-bold px-3 py-1.5 rounded-xl text-xs md:text-sm border border-teal-500 outline-none cursor-pointer">
+                    <option value="1">الصف الأول</option>
+                    <option value="2">الصف الثاني</option>
+                    <option value="3">الصف الثالث</option>
+                    <option value="4">الصف الرابع</option>
+                    <option value="5">الصف الخامس</option>
+                    <option value="6">الصف السادس</option>
+                </select>
+
+                <button onclick="handleNavigation(() => goToHome())" class="bg-slate-700 hover:bg-slate-600 text-white p-2 px-3 rounded-xl text-sm transition">
+                    <i class="fa-solid fa-house"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="max-w-5xl mx-auto p-4 md:p-6 flex-grow w-full">
+
+        <!-- SCREEN 1: SUBJECTS & GRADE SELECTION -->
+        <section id="screen-subjects" class="space-y-6">
+            <div class="flex flex-wrap justify-center gap-2 bg-white p-2.5 rounded-2xl shadow-sm border border-slate-200">
+                <button onclick="handleNavigation(() => switchClass('1'))" class="grade-btn px-3.5 py-1.5 rounded-xl font-bold text-xs md:text-sm" id="gbtn-1">الصف الأول</button>
+                <button onclick="handleNavigation(() => switchClass('2'))" class="grade-btn px-3.5 py-1.5 rounded-xl font-bold text-xs md:text-sm" id="gbtn-2">الصف الثاني</button>
+                <button onclick="handleNavigation(() => switchClass('3'))" class="grade-btn px-3.5 py-1.5 rounded-xl font-bold text-xs md:text-sm" id="gbtn-3">الصف الثالث</button>
+                <button onclick="handleNavigation(() => switchClass('4'))" class="grade-btn px-3.5 py-1.5 rounded-xl font-bold text-xs md:text-sm" id="gbtn-4">الصف الرابع</button>
+                <button onclick="handleNavigation(() => switchClass('5'))" class="grade-btn px-3.5 py-1.5 rounded-xl font-bold text-xs md:text-sm" id="gbtn-5">الصف الخامس</button>
+                <button onclick="handleNavigation(() => switchClass('6'))" class="grade-btn px-3.5 py-1.5 rounded-xl font-bold text-xs md:text-sm" id="gbtn-6">الصف السادس</button>
+            </div>
+
+            <div class="custom-card p-6 text-center bg-slate-800 text-white border-none shadow-md">
+                <div class="text-3xl mb-2">📚</div>
+                <h2 id="welcome-title" class="text-xl md:text-2xl font-black mb-1">منهاج الصف الأول الابتدائي</h2>
+                <p class="text-xs md:text-sm text-slate-300 max-w-xl mx-auto">
+                    اختر المادة لبدء التحدي. الأسئلة علمية ومجردة تماماً ومصممة لكل صف بدقة.
+                </p>
+            </div>
+
+            <div class="custom-card p-4 flex flex-wrap items-center justify-between gap-3 bg-white">
+                <span class="text-xs md:text-sm font-bold text-slate-700"><i class="fa-solid fa-user-pen text-teal-600"></i> اسم الطالب/ـة للشهادة:</span>
+                <input type="text" id="student-name-input" placeholder="اكتب الاسم هنا..." class="flex-grow max-w-md px-3.5 py-1.5 rounded-xl border border-slate-300 font-bold text-slate-800 text-sm outline-none focus:border-teal-600">
+            </div>
+
+            <div id="subjects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </section>
+
+        <!-- SCREEN 2: GAME ARENA -->
+        <section id="screen-game" class="hidden space-y-5">
+            <div class="custom-card p-3.5 flex justify-between items-center bg-white">
+                <button onclick="handleNavigation(() => goToHome())" class="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl font-bold text-xs flex items-center gap-1">
+                    <i class="fa-solid fa-xmark"></i> إنهاء الاختبار
+                </button>
+                <div class="text-xs md:text-sm font-bold bg-slate-100 text-slate-800 px-3 py-1 rounded-xl">
+                    السؤال: <span id="game-progress-text" class="text-teal-600 font-black">1 / 10</span>
+                </div>
+                <div class="text-xs md:text-sm font-bold bg-amber-50 text-amber-800 px-3 py-1 rounded-xl">
+                    النقاط الحالية: <span id="game-score" class="font-black text-amber-600">0</span>
+                </div>
+            </div>
+
+            <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                <div id="game-progress-bar" class="bg-teal-600 h-2.5 transition-all duration-300" style="width: 10%;"></div>
+            </div>
+
+            <div class="custom-card p-6 md:p-8 text-center bg-white shadow-lg">
+                <div id="question-icon" class="text-4xl mb-3">❓</div>
+                <h3 id="question-text" class="text-lg md:text-xl font-black mb-6 text-slate-800 leading-relaxed">جاري التحميل...</h3>
+                <div id="answers-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-xl mx-auto"></div>
+                <div id="feedback-message" class="hidden mt-5 p-3 rounded-xl font-bold text-sm text-white"></div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: CERTIFICATE & RESULTS -->
+        <section id="screen-result" class="hidden">
+            <div id="printable-certificate" class="custom-card p-6 md:p-8 text-center max-w-2xl mx-auto border-4 border-teal-600 bg-white shadow-xl my-4">
+                <div class="border-2 border-dashed border-teal-200 p-6 rounded-xl bg-teal-50/20">
+                    <div class="text-4xl mb-2">🏆</div>
+                    <h2 class="text-2xl font-black text-slate-800 mb-1">شهادة إتمام اختبار علمي</h2>
+                    <p class="text-xs text-slate-500 font-bold mb-3">تشهد المنصة التعليمية بأن الطالب/ـة:</p>
+                    <h3 id="cert-student-name" class="text-xl font-black text-teal-800 bg-teal-100 py-1 px-5 rounded-full inline-block mb-3">البطل المتميز</h3>
+                    <p class="text-slate-700 font-bold text-sm mb-3">
+                        قد أتم اختبار مادة (<span id="cert-subject-name" class="text-teal-700">العلوم</span>) - <span id="cert-grade-name" class="text-teal-700">الصف الأول</span> بنجاح.
+                    </p>
+                    <div class="text-xl font-black text-emerald-700 bg-emerald-50 py-1.5 px-4 rounded-xl inline-block mb-4 border border-emerald-200">
+                        النتيجة: <span id="final-score">10 / 10</span>
+                    </div>
+                    <div class="border-t border-slate-200 pt-3 flex justify-between text-xs font-bold text-slate-600">
+                        <div>الإشراف التعليمي: <span class="text-slate-800">المدرس خالد سمارة</span></div>
+                        <div>التقييم: <span class="text-teal-700">ممتاز 🌟</span></div>
+                    </div>
+                </div>
+                <div class="flex justify-center flex-wrap gap-2.5 mt-5 print:hidden">
+                    <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs">
+                        <i class="fa-solid fa-print"></i> طباعة الشهادة
+                    </button>
+                    <button onclick="restartCurrentGame()" class="play-btn px-4 py-2 font-bold text-xs">
+                        <i class="fa-solid fa-rotate-right"></i> إعادة الاختبار
+                    </button>
+                    <button onclick="goToHome()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs">
+                        <i class="fa-solid fa-house"></i> القائمة الرئيسية
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER WITH TEACHER INFO -->
+    <footer class="mt-8 border-t bg-white py-3.5 px-4 text-center text-slate-700 text-xs md:text-sm">
+        <div class="max-w-5xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <div>إعداد وإشراف: <span class="font-black text-slate-900">المدرس خالد سمارة</span></div>
+            <div class="flex items-center gap-2 font-bold dir-ltr">
+                <span>WhatsApp:</span>
+                <a href="https://wa.me/963944469248" target="_blank" class="text-teal-700 hover:underline">00963944469248</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* STATE MANAGEMENT */
+        let currentGrade = "1";
+        let currentSubjectKey = null;
+        let questions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let globalStars = 0;
+        let isGameActive = false;
+
+        const subjectMeta = {
+            math: { title: "الرياضيات", icon: "🧮", desc: "مسائل وأرقام متدرجة حسب الصف" },
+            science: { title: "العلوم العامة", icon: "🔬", desc: "مفاهيم الكائنات الحية والجسم والطبيعة" },
+            arabic: { title: "اللغة العربية", icon: "📖", desc: "قواعد، إملاء، ومفردات لغوية" },
+            islamic: { title: "التربية الإسلامية", icon: "🕌", desc: "سورة الفاتحة، الأخلاق، والعبادات" },
+            geography: { title: "الجغرافيا والطبيعة", icon: "🌍", desc: "الفرص المناخية، القارات، والموارد الطبيعية" },
+            english: { title: "اللغة الإنكليزية", icon: "🔤", desc: "Vocabulary & Basic Grammar" }
+        };
+
+        /* SOUNDS */
+        function playSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                if (type === 'correct') {
+                    osc.frequency.setValueAtTime(523, ctx.currentTime);
+                    osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    osc.start(); osc.stop(ctx.currentTime + 0.25);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    osc.start(); osc.stop(ctx.currentTime + 0.25);
+                }
+            } catch(e){}
+        }
+
+        /* SHUFFLE UTILITY */
+        function shuffleArray(arr) {
+            let array = [...arr];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function prepareQuestion(qObj) {
+            let optsWithFlag = qObj.options.map((text, idx) => ({ text, isCorrect: idx === 0 }));
+            optsWithFlag = shuffleArray(optsWithFlag);
+            let correctIdx = optsWithFlag.findIndex(o => o.isCorrect);
+            return {
+                q: qObj.q,
+                options: optsWithFlag.map(o => o.text),
+                answer: correctIdx,
+                icon: qObj.icon || "❓"
+            };
+        }
+
+        /* GENERATE DYNAMIC NON-REPETITIVE MATH QUESTIONS */
+        function generateMathQuestions(grade) {
+            let list = [];
+            let usedSet = new Set();
+            let g = parseInt(grade);
+
+            while (list.length < 10) {
+                let n1, n2, ans, qText;
+
+                if (g === 1) {
+                    if (Math.random() > 0.5) {
+                        n1 = Math.floor(Math.random() * 5) + 1;
+                        n2 = Math.floor(Math.random() * 5) + 1;
+                        ans = n1 + n2;
+                        qText = `ما ناتج جمع: ${n1} + ${n2} = ؟`;
+                    } else {
+                        n1 = Math.floor(Math.random() * 5) + 5;
+                        n2 = Math.floor(Math.random() * n1) + 1;
+                        ans = n1 - n2;
+                        qText = `ما ناتج طرح: ${n1} - ${n2} = ؟`;
+                    }
+                } else if (g === 2) {
+                    let type = Math.floor(Math.random() * 3);
+                    if (type === 0) {
+                        n1 = Math.floor(Math.random() * 4) + 2;
+                        n2 = Math.floor(Math.random() * 5) + 1;
+                        ans = n1 * n2;
+                        qText = `ما ناتج الضرب: ${n1} × ${n2} = ؟`;
+                    } else if (type === 1) {
+                        n1 = Math.floor(Math.random() * 30) + 10;
+                        n2 = Math.floor(Math.random() * 20) + 5;
+                        ans = n1 + n2;
+                        qText = `احسب مجموع: ${n1} + ${n2} = ؟`;
+                    } else {
+                        n1 = Math.floor(Math.random() * 40) + 10;
+                        n2 = Math.floor(Math.random() * 10) + 1;
+                        ans = n1 - n2;
+                        qText = `احسب الفرق: ${n1} - ${n2} = ؟`;
+                    }
+                } else if (g === 3) {
+                    if (Math.random() > 0.4) {
+                        n1 = Math.floor(Math.random() * 8) + 2;
+                        n2 = Math.floor(Math.random() * 8) + 2;
+                        ans = n1 * n2;
+                        qText = `ما حاصل ضرب: ${n1} × ${n2} = ؟`;
+                    } else {
+                        n2 = Math.floor(Math.random() * 7) + 2;
+                        ans = Math.floor(Math.random() * 8) + 2;
+                        n1 = ans * n2;
+                        qText = `ما ناتج القسمة: ${n1} ÷ ${n2} = ؟`;
+                    }
+                } else if (g === 4) {
+                    let type = Math.floor(Math.random() * 3);
+                    if (type === 0) {
+                        n1 = Math.floor(Math.random() * 15) + 10;
+                        n2 = Math.floor(Math.random() * 8) + 2;
+                        ans = n1 * n2;
+                        qText = `احسب ناتج: ${n1} × ${n2} = ؟`;
+                    } else if (type === 1) {
+                        n1 = Math.floor(Math.random() * 400) + 100;
+                        n2 = Math.floor(Math.random() * 300) + 50;
+                        ans = n1 + n2;
+                        qText = `ما المجموع: ${n1} + ${n2} = ؟`;
+                    } else {
+                        n2 = Math.floor(Math.random() * 8) + 2;
+                        ans = Math.floor(Math.random() * 12) + 3;
+                        n1 = ans * n2;
+                        qText = `احسب قيمة: ${n1} ÷ ${n2} = ؟`;
+                    }
+                } else if (g === 5) {
+                    let type = Math.floor(Math.random() * 3);
+                    if (type === 0) {
+                        n1 = Math.floor(Math.random() * 20) + 10;
+                        n2 = Math.floor(Math.random() * 11) + 2;
+                        ans = n1 * n2;
+                        qText = `حاصل ضرب ${n1} في ${n2} هو:`;
+                    } else if (type === 1) {
+                        n1 = Math.floor(Math.random() * 1000) + 500;
+                        n2 = Math.floor(Math.random() * 400) + 100;
+                        ans = n1 - n2;
+                        qText = `ناتج طرح ${n1} - ${n2} هو:`;
+                    } else {
+                        n2 = Math.floor(Math.random() * 9) + 3;
+                        ans = Math.floor(Math.random() * 20) + 5;
+                        n1 = ans * n2;
+                        qText = `ناتج قسمة ${n1} ÷ ${n2} يساوي:`;
+                    }
+                } else {
+                    let type = Math.floor(Math.random() * 3);
+                    if (type === 0) {
+                        let a = Math.floor(Math.random() * 6) + 2;
+                        let b = Math.floor(Math.random() * 5) + 2;
+                        let c = Math.floor(Math.random() * 10) + 1;
+                        ans = (a * b) + c;
+                        qText = `احسب المقدار: (${a} × ${b}) + ${c} = ؟`;
+                    } else if (type === 1) {
+                        let percent = (Math.floor(Math.random() * 4) + 1) * 10;
+                        let total = Math.floor(Math.random() * 4 + 1) * 100;
+                        ans = (percent / 100) * total;
+                        qText = `ما قيمة ${percent}% من العدد ${total}؟`;
+                    } else {
+                        let x = Math.floor(Math.random() * 12) + 2;
+                        let add = Math.floor(Math.random() * 15) + 3;
+                        let total = x + add;
+                        ans = x;
+                        qText = `إذا كان س + ${add} = ${total} ، فإن قيمة س هي:`;
+                    }
+                }
+
+                if (!usedSet.has(qText)) {
+                    usedSet.add(qText);
+                    let wrong1 = ans + Math.floor(Math.random() * 3) + 1;
+                    let wrong2 = Math.max(0, ans - (Math.floor(Math.random() * 3) + 1));
+                    if (wrong1 === ans) wrong1 += 3;
+                    if (wrong2 === ans || wrong2 === wrong1) wrong2 = ans + 4;
+
+                    list.push(prepareQuestion({
+                        q: qText,
+                        options: [ans.toString(), wrong1.toString(), wrong2.toString()],
+                        icon: "🧮"
+                    }));
+                }
+            }
+            return list;
+        }
+
+        /* STRICTLY NON-POLITICAL & DIVERSE QUESTION BANK (GRADES 1-6) */
+        const curriculumBank = {
+            science: {
+                "1": [
+                    { q: "العضو المسؤول عن حاسة البصر هو:", options: ["العين", "الأذن", "الأنف"], icon: "👁️" },
+                    { q: "أي مما يلي يُعتبر كائناً حياً؟", options: ["النبات", "الحجر", "القلم"], icon: "🌱" },
+                    { q: "الجزء الذي يمتص الماء والتقوية من التربة هو:", options: ["الجذر", "الزهرة", "الورقة"], icon: "🪴" },
+                    { q: "نسمع الأصوات بوساطة حاسة:", options: ["السمع (الأذن)", "اللمس", "التذوق"], icon: "👂" },
+                    { q: "يغطي جسم الطيور عادةً:", options: ["الريش", "الشعر", "القشور"], icon: "🐦" },
+                    { q: "الحيوان الذي يزحف على بطنه ولا يملك أرجلاً هو:", options: ["الأفعى", "الأرنب", "الكلب"], icon: "🐍" },
+                    { q: "النباتات تحتاج إلى الماء والهواء و... لكي تنمو:", options: ["ضوء الشمس", "الحليب", "الظلام"], icon: "☀️" },
+                    { q: "العضو المسؤول عن حاسة الشم هو:", options: ["الأنف", "اللسان", "العين"], icon: "👃" },
+                    { q: "من أمثلة الأغذية الصحية المفيدة للأسنان:", options: ["الحليب والجبن", "السكريات بكثرة", "المشروبات الغازية"], icon: "🥛" },
+                    { q: "الكائن الحي يتنفس ويكون بحاجة إلى:", options: ["الهواء", "الحديد", "الحجارة"], icon: "💨" }
+                ],
+                "2": [
+                    { q: "تعد عظام الجمجمة مثالاً على العظام:", options: ["المسطحة", "الطويلة", "القصيرة"], icon: "💀" },
+                    { q: "يعتبر عظم الفخذ مثالاً على العظام:", options: ["الطويلة", "المسطحة", "القصيرة"], icon: "🦴" },
+                    { q: "عظام سلاميات الأصابع تصنف بأنها عظام:", options: ["قصيرة", "طويلة", "مسطحة"], icon: "🖐️" },
+                    { q: "مكان التقاء عظمين يسمح بالحركة يسمى:", options: ["المفصل", "العضلة", "الجلد"], icon: "🦴" },
+                    { q: "تحمي عظام القفص الصدري كلاً من:", options: ["القلب والرئتين", "المعدة والعين", "الدماغ"], icon: "🫀" },
+                    { q: "عظام الأضلاع تنتمي لمجموعة العظام:", options: ["المسطحة", "الطويلة جداً", "القصيرة"], icon: "🦴" },
+                    { q: "تتصل العضلات بالعظام عن طريق:", options: ["الأوتار", "المفاصل فقط", "الجلد"], icon: "💪" },
+                    { q: "المفصل في الكوع والركبة يسمح بالحركة في:", options: ["اتجاه معين", "جميع الاتجاهات بشكل كامل", "لا يسمح بالحركة"], icon: "🦵" },
+                    { q: "العضو الذي يحمي أجزاء الجسم الخارجية هو:", options: ["الجلد", "العظم", "القلب"], icon: "🛡️" },
+                    { q: "الهيكل العظمي يمنح الجسم:", options: ["الشكل والدعامة", "اللون فقط", "الهضم"], icon: "🧍" }
+                ],
+                "3": [
+                    { q: "العضو الأساسي في التنفس لطرح الكربون وأخذ الأكسجين هو:", options: ["الرئة", "المعدة", "الكلية"], icon: "🫁" },
+                    { q: "تحول المادة من الحالة الصلبة إلى السائلة بالحرارة يسمى:", options: ["انصهار", "تجمد", "تكاثف"], icon: "🔥" },
+                    { q: "تتغذى الحيوانات العشبية على:", options: ["النباتات", "اللحوم", "الحشرات فقط"], icon: "🐇" },
+                    { q: "يتكون العمود الفقري من مجموعة من:", options: ["الفقرات", "الأضلاع المسطحة", "المفاصل الثابتة"], icon: "🦴" },
+                    { q: "تحول الماء السائل إلى بخار ماء بالحرارة يسمى:", options: ["تبخر", "تكاثف", "انصهار"], icon: "💨" },
+                    { q: "تتميز النباتات بأنها تصنع غذاءها بنفسها بوساطة:", options: ["البناء الضوئي", "الهضم الداخلي", "الامتصاص فقط"], icon: "🍃" },
+                    { q: "المادة التي لها حجم ثابت وشكل ثابت تكون في الحالة:", options: ["الصلبة", "السائلة", "الغازية"], icon: "🧊" },
+                    { q: "أي من التالي يعد حشرة نافعة تنتج العسل؟", options: ["النحلة", "الذباب", "البعوض"], icon: "🐝" },
+                    { q: "الأسنان التي تقطع الطعام في الفم تسمى:", options: ["القواطع", "الأضراس", "الأنياب"], icon: "🦷" },
+                    { q: "تستجيب الكائنات الحية للمؤثرات الخارجية عن طريق الجهاز:", options: ["العصبي", "الهضمي", "الهيكلي"], icon: "🧠" }
+                ],
+                "4": [
+                    { q: "العضو الذي يضخ الدم إلى جميع أجزاء الجسم هو:", options: ["القلب", "الرئة", "المعدة"], icon: "🫀" },
+                    { q: "المادة الخضراء في أوراق النبات التي تصنع الغذاء هي:", options: ["الكلوروفيل (اليخضور)", "الخشب", "اللحاء"], icon: "🍃" },
+                    { q: "تنتقل الطاقة في السلسلة الغذائية بدءاً من:", options: ["المنتجات (النباتات)", "المستهلكات", "المحللات"], icon: "☀️" },
+                    { q: "من الأمثلة على التغير الفيزيائي للمادة:", options: ["انصهار الشمع", "احتراق الخشب", "صدأ الحديد"], icon: "🕯️" },
+                    { q: "الغاز الذي نستهلكه في عملية التنفس هو:", options: ["الأكسجين", "ثاني أكسيد الكربون", "النيتروجين"], icon: "🌬️" },
+                    { q: "العضو المسؤول عن امتصاص الماء والمواد المغذية في الجهاز الهضمي هو:", options: ["الأمعاء", "المرئ", "الفم"], icon: "🥖" },
+                    { q: "القوة التي تجذب الأشياء نحو مركز الأرض هي:", options: ["الجاذبية الأرضية", "الاحتكاك", "المغناطيسية"], icon: "🍏" },
+                    { q: "تتكون القشرة الصخرية للكرة الأرضية من:", options: ["الصخور والمعادن", "الماء فقط", "الغازات"], icon: "🪨" },
+                    { q: "أي عملية مما يلي تعد تغيراً كيميائياً؟", options: ["احتراق الورق", "تقطيع الخشب", "ذوبان السكر في الماء"], icon: "🔥" },
+                    { q: "الكائنات التي تقوم بتحليل أجساد الكائنات الميتة تسمى:", options: ["المحللات", "المنتجات", "المفترسات"], icon: "🦠" }
+                ],
+                "5": [
+                    { q: "الأوعية الدموية التي تنقل الدم من القلب لجميع أجزاء الجسم هي:", options: ["الشرايين", "الأوردة", "الشعيرات"], icon: "🩸" },
+                    { q: "الوحدة الأساسية لبناء جسم الكائن الحي هي:", options: ["الخلية", "العضو", "النسيج"], icon: "🔬" },
+                    { q: "العضو المسؤول عن تنقية الدم من الفضلات والسوائل الزائدة هو:", options: ["الكلية", "الكبد", "الطحال"], icon: "🧼" },
+                    { q: "السائل الشفاف الذي يعبئ معظم حجم الخلية ويحوي أجزاءها هو:", options: ["السيتوبلازم", "النواة", "الغشاء الخلوي"], icon: "🧫" },
+                    { q: "تسمى عملية انتقال الماء عبر غشاء شبه نافذ بـ:", options: ["الخاصية الأسموزية", "الانتشار البسيط", "التنفس الخلوي"], icon: "💧" },
+                    { q: "تتحول الطاقة الشمسية في الخلايا الشمسية إلى طاقة:", options: ["كهربائية", "حرارية فقط", "حركية"], icon: "⚡" },
+                    { q: "معدن سائل في درجة الحرارة العادية يستخدم في موازين الحرارة:", options: ["الزئبق", "الحديد", "النحاس"], icon: "🌡️" },
+                    { q: "العدسة التي تجمع الأشعة الضوئية في نقطة تسمى:", options: ["العدسة المحدبة", "العدسة المقرة", "المرآة المستوية"], icon: "🔍" },
+                    { q: "الغشاء الذي يحيط بالخلية النباتية من الخارج ويعطيها الصلابة هو:", options: ["الجدار الخلوي", "الغشاء البلازمي", "النواة"], icon: "🧱" },
+                    { q: "الغاز الصادر عن عملية البناء الضوئي في النبات هو:", options: ["الأكسجين", "ثاني أكسيد الكربون", "النيتروجين"], icon: "🌿" }
+                ],
+                "6": [
+                    { q: "الغاز الأكثر نسبة في الغلاف الجوي للأرض هو:", options: ["النيتروجين", "الأكسجين", "ثاني أكسيد الكربون"], icon: "🌍" },
+                    { q: "تسمى عملية انقسام الخلية للنمو وتعويض الخشب التالف:", options: ["الانقسام الخيطي (الفتيلي)", "التنفس الخلوي", "الإنبات"], icon: "🧫" },
+                    { q: "سائل في الجسم ينقل الغذاء والأكسجين ويحارب الجراثيم هو:", options: ["الدم", "الماء السائل", "الإنزيم"], icon: "🩸" },
+                    { q: "تتركب المادة من أجزاء صغيرة جداً لا ترى بالعين المجردة تسمى:", options: ["الذرات", "الأعضاء", "الأنسجة"], icon: "⚛️" },
+                    { q: "انكسار الضوء يحدث عندما ينتقل الضوء بين وسطين شفافين:", options: ["مختلفين في الكثافة", "متشابهين تماماً", "معتمين"], icon: "🌈" },
+                    { q: "التفاعلات التي تطلق حرارة للوسط المحيط تسمى تفاعلات:", options: ["ناشرة للحرارة", "ماصة للحرارة", "ثابتة"], icon: "🔥" },
+                    { q: "الجهاز العاكس أو المكبر الذي يستخدم لرؤية الأجرام السماوية هو:", options: ["التلسكوب (المرقاب)", "المجهر الإلكتروني", "المكالمة"], icon: "🔭" },
+                    { q: "تتكون الذرة من نواة مركزية تدور حولها كتل صغيرة جداً هي:", options: ["الإلكترونات", "البروتونات", "الجزيئات"], icon: "⚡" },
+                    { q: "الطبقة المحيطة بالكرة الأرضية وتحميها من الأشعة الضارة هي:", options: ["الغلاف الجوي (طبقة الأوزون)", "المحيط المائي", "القشرة الصخرية"], icon: "🛡️" },
+                    { q: "سرعة الضوء في الفراغ أسرع من سرعة الصوت في الهواء بـ:", options: ["مراحل كبيرة جداً", "قليل جداً", "هما متساويان"], icon: "⚡" }
+                ]
+            },
+            arabic: {
+                "1": [
+                    { q: "ما حرف الجر في جملة (ذهبَ أحمدُ إلى المدرسةِ)؟", options: ["إلى", "ذهب", "المدرسة"], icon: "📖" },
+                    { q: "كلمة (كِـتَـاب) تبدأ بحرف:", options: ["الكاف", "التاء", "الباء"], icon: "✏️" },
+                    { q: "اسم الإشارة المناسب للمذكر القريب هو:", options: ["هذا", "هذه", "هؤلاء"], icon: "👉" },
+                    { q: "كلمة (القَمَر) تحتوي على لام:", options: ["قمرية", "شمسية", "أصلية"], icon: "🌙" },
+                    { q: "عكس كلمة (كبير) هو:", options: ["صغير", "طويل", "عريض"], icon: "📏" },
+                    { q: "حرف العطف في جملة (دخل أحمدُ ومحمودٌ) هو:", options: ["الواو", "في", "عن"], icon: "🔗" },
+                    { q: "الكلمة المنتهية بتاء مربوطة فيما يلي هي:", options: ["شجرة", "بيت", "بنت"], icon: "🌳" },
+                    { q: "اسم الإشارة المناسب للمؤنث القريب هو:", options: ["هذه", "هذا", "هذان"], icon: "👧" },
+                    { q: "جمع كلمة (قلم) هو:", options: ["أقلام", "قلمان", "مقلمة"], icon: "✏️" },
+                    { q: "نوع اللام في كلمة (الشَّمْس) هي لام:", options: ["شمسية", "قمرية", "ممدودة"], icon: "☀️" }
+                ],
+                "2": [
+                    { q: "ما نوع الفعل في كلمة (يَكْتُبُ)؟", options: ["فعل مضارع", "فعل ماضٍ", "فعل أمر"], icon: "📝" },
+                    { q: "جمع كلمة (علم) هو:", options: ["علوم", "علماء", "أعلام"], icon: "📚" },
+                    { q: "التاء في كلمة (مَدْرَسَة) هي تاء:", options: ["مربوطة", "مفتوحة", "ضمير"], icon: "🏫" },
+                    { q: "الفعل الذي يدل على حدث انتهى في الماضي يسمى:", options: ["فعل ماضٍ", "فعل مضارع", "فعل أمر"], icon: "⏳" },
+                    { q: "كلمة (طالبان) تدل على:", options: ["مثنى", "مفرد", "جمع"], icon: "👥" },
+                    { q: "الضمير الذي يدل على الغائب المذكر هو:", options: ["هو", "هي", "أنا"], icon: "👤" },
+                    { q: "علامة الترقيم التي توضع في نهاية الجملة التامة هي:", options: ["النقطة (.)", "علامة الاستفهام (?)", "الفاصلة (،)"], icon: "📍" },
+                    { q: "عكس كلمة (الصباح) هو:", options: ["المساء", "الظهر", "الليل"], icon: "🌅" },
+                    { q: "كلمة (لَعِبَ) هي:", options: ["فعل ماضٍ", "اسم مذكر", "حرف جر"], icon: "🏃" },
+                    { q: "اسم يدل على اثنين أو اثنتين يسمى:", options: ["مثنى", "جمع تكسير", "مفرد"], icon: "✌️" }
+                ],
+                "3": [
+                    { q: "الفاعل في جملة (قَرَأَ الطَّالِبُ الدَّرْسَ) هو:", options: ["الطَّالِبُ", "قَرَأَ", "الدَّرْسَ"], icon: "📘" },
+                    { q: "كلمة (مُسْلِمُونَ) هي جمع:", options: ["مذكر سالم", "مؤنث سالم", "تكسير"], icon: "👥" },
+                    { q: "الجملة التي تبدأ بفعل تسمى جملة:", options: ["فعليّة", "اسميّة", "حرفيّة"], icon: "✍️" },
+                    { q: "المفعول به في جملة (شَرِبَ الطفلُ الحليبَ) هو:", options: ["الحليبَ", "الطفلُ", "شَرِبَ"], icon: "🥛" },
+                    { q: "حروف الجر تدخل فقط على:", options: ["الأسماء", "الأفعال", "حروف العطف"], icon: "📌" },
+                    { q: "جمع كلمة (معلمة) هو:", options: ["معلمات", "معلمون", "معالم"], icon: "👩‍🏫" },
+                    { q: "الكلمة التي تدل على مكان أو زمان وقوع الفعل تسمى:", options: ["ظرفاً", "فاعلاً", "خبراً"], icon: "⏰" },
+                    { q: "تكون علامة رفع الفاعل المفرد دائماً هي:", options: ["الضمة", "الفتحة", "الكسرة"], icon: "📍" },
+                    { q: "جمع التكسير لكلمة (كتاب) هو:", options: ["كتب", "كتبة", "كتّاب"], icon: "📚" },
+                    { q: "الضمير (أنتم) هو ضمير مخاطب لـ:", options: ["الجمع المذكر", "المفرد المؤنث", "المثنى"], icon: "👨‍👩‍👧‍👦" }
+                ],
+                "4": [
+                    { q: "الكلمة التي تعرب مفعولاً به تكون دائماً:", options: ["منصوبة", "مرفوعة", "مجرورة"], icon: "✍️" },
+                    { q: "علامة رفع الاسم المفرد هي:", options: ["الضمة", "الفتحة", "الكسرة"], icon: "📍" },
+                    { q: "الصفة تتبع الموصوف في:", options: ["جميع حالاته الإعرابية والتذكير والتأنيث", "الإعراب فقط", "العدد فقط"], icon: "🎨" },
+                    { q: "ما المبتدأ في جملة (العِلْمُ نُورٌ)؟", options: ["العِلْمُ", "نُورٌ", "مستتر"], icon: "💡" },
+                    { q: "الفعل المضارع المعرب يرفع ما لم يسبقه ناصب أو جازم بـ:", options: ["الضمة", "الفتحة", "السكون"], icon: "✏️" },
+                    { q: "أي من الأفعال التالية هو فعل أمر؟", options: ["اكْتُبْ", "يَكْتُبُ", "كَتَبَ"], icon: "📌" },
+                    { q: "علامة جَرّ الاسم المفرد الصحيح هي:", options: ["الكسرة", "الفتحة", "الضمة"], icon: "📍" },
+                    { q: "كلمة (طالبات) تُجمع جمع مؤنث سالم بزيادة:", options: ["ألف وتاء", "واو ونون", "ياء ونون"], icon: "👩‍🎓" },
+                    { q: "الاسم الذي يقع بعد حرف الجر يكون دائماً:", options: ["مجروراً", "منصوباً", "مرفوعاً"], icon: "🔗" },
+                    { q: "الفعل الناقص الذي يفيد النفي هو:", options: ["ليس", "كان", "أصبح"], icon: "🚫" }
+                ],
+                "5": [
+                    { q: "كان وأخواتها تدخل على الجملة الاسمية فترفع المبتدأ و:", options: ["تنصب الخبر", "ترفع الخبر", "تجر الخبر"], icon: "📚" },
+                    { q: "إن وأخواتها تدخل على الجملة الاسمية فتنصب المبتدأ و:", options: ["ترفع الخبر", "تنصب الخبر", "تجزم الخبر"], icon: "📝" },
+                    { q: "علامة نصب المثنى هي:", options: ["الياء", "الألف", "الكسرة"], icon: "✌️" },
+                    { q: "علامة رفع جمع المذكر السالم هي:", options: ["الواو", "الضمة", "الألف"], icon: "👥" },
+                    { q: "الهمزة المتوسطة على نبرة (ئـ) تُكتب إذا كانت أسرع/أقوى الحركات هي:", options: ["الكسرة", "الضمة", "الفتحة"], icon: "✍️" },
+                    { q: "من أخوات (كان) التي تفيد التحوّل من حال إلى حال:", options: ["صار", "ليس", "ظلّ"], icon: "🔄" },
+                    { q: "تُرفع الأفعال الخمسة بـ:", options: ["ثبوت النون", "الضمة", "حذف النون"], icon: "🔢" },
+                    { q: "المفعول المطلق هو اسم منصوب يشتق من لفظ:", options: ["الفعل", "الفاعل", "الخبر"], icon: "🎯" },
+                    { q: "علامة جزم الفعل المضارع صحيح الآخر هي:", options: ["السكون", "حذف حرف العلة", "الكسرة"], icon: "🛑" },
+                    { q: "الكلمة المبنية من الأسماء التالية هي:", options: ["هذا (اسم إشارة)", "طالب", "مدرسة"], icon: "📌" }
+                ],
+                "6": [
+                    { q: "تُنصب الأفعال الخمسة بـ:", options: ["حذف النون", "ثبوت النون", "الفتحة"], icon: "📝" },
+                    { q: "الاسم المرفوع الذي يبدأ به الكلام في الجملة الاسمية هو:", options: ["المبتدأ", "الخبر", "الفاعل"], icon: "📘" },
+                    { q: "تُكتب الهمزة المتطرفة على ألف إذا كان ما قبلها:", options: ["مفتوحاً", "مضموماتً", "مكسوراً"], icon: "✍️" },
+                    { q: "نائب الفاعل هو اسم مرفوع يحل محل الفاعل بعد تحويل الفعل إلى:", options: ["المبني للمجهول", "المبني للمعلوم", "الأمر"], icon: "🔍" },
+                    { q: "المضاف إليه يكون حكمة الإعرابي دائماً:", options: ["المجرور", "المنصوب", "المرفوع"], icon: "🔗" },
+                    { q: "الفعل الماضي يَبنى على السكون إذا اتصلت به:", options: ["تاء الفاعل المتحركة", "واو الجماعة", "ألف الاثنين"], icon: "📌" },
+                    { q: "من الحروف الناصبة للفعل المضارع:", options: ["أنْ ولنْ وَكي", "لمْ ولمّا", "إنّ وأنّ"], icon: "⚡" },
+                    { q: "اسم الآلة من الفعل (فتح) هو:", options: ["مِفتاح", "فاتح", "مفتوح"], icon: "🔑" },
+                    { q: "مصدر الفعل الثلاثي (زَرَعَ) هو:", options: ["زِراعة", "زارع", "متحرك"], icon: "🌾" },
+                    { q: "المفعول لأجله يأتِ لبيان:", options: ["سبب وقوع الفعل", "زمان الفعل", "مكان الفعل"], icon: "💡" }
+                ]
+            },
+            islamic: {
+                "1": [
+                    { q: "ما هو كتاب الله المُنزل على سيدنا محمد ﷺ؟", options: ["القرآن الكريم", "الإنجيل", "التوراة"], icon: "📖" },
+                    { q: "ما هي كلمة التوحيد التي ندخل بها الإسلام؟", options: ["الشهادتان", "التكبير", "الحمد لله"], icon: "🕌" },
+                    { q: "كم عدد أركان الإسلام؟", options: ["خمسة أركان", "ثلاثة أركان", "ستة أركان"], icon: "🖐️" },
+                    { q: "التحية الإسلامية بين المسلمين هي:", options: ["السلام عليكم ورحمة الله", "مرحباً بك", "صباح الخير"], icon: "🤝" },
+                    { q: "ما أقوله عندما أبدأ بالأكل أو العمل الصالح هو:", options: ["بسم الله الرحمن الرحيم", "الحمد لله", "أستغفر الله"], icon: "🍽️" },
+                    { q: "عند الانتهاء من تناول الطعام نقول:", options: ["الحمد لله", "بسم الله", "سبحان الله"], icon: "🤲" },
+                    { q: "الجهة التي نتجه إليها في صلاتنا هي:", options: ["الكعبة المشرفة", "الشمال", "الشرق"], icon: "🕋" },
+                    { q: "طاعة الوالدين واحترامهما تعتبر من الأعمال:", options: ["الصالحة التي يحبها الله", "العادية", "المكروهة"], icon: "❤️" },
+                    { q: "نقرأ في كل ركعة من الصلاة سورة:", options: ["الفاتحة", "الإخلاص", "الناس"], icon: "📖" },
+                    { q: "اسم نبينا الخاتم هو:", options: ["محمد ﷺ", "إبراهيم عليه السلام", "موسى عليه السلام"], icon: "✨" }
+                ],
+                "2": [
+                    { q: "الركن الثاني من أركان الإسلام هو:", options: ["إقام الصلاة", "إيتاء الزكاة", "صوم رمضان"], icon: "🕌" },
+                    { q: "من شروط صحة الصلاة الطهارة و:", options: ["الوضوء", "الأكل", "النوم"], icon: "💧" },
+                    { q: "سورة نبدأ بها كافة ركعات الصلاة هي سورة:", options: ["الفاتحة", "الإخلاص", "الفلق"], icon: "📖" },
+                    { q: "الصدق خلق حسن يعني ألا أقول إلا:", options: ["الحقيقة والحرص على الأمانة", "الكذب", "المزاح الخاطئ"], icon: "💎" },
+                    { q: "عدد الصلوات المفروضة في اليوم والليلة هو:", options: ["خمس صلوات", "ثلاث صلوات", "أربع صلوات"], icon: "🕒" },
+                    { q: "أول خطوات الوضوء الصحيح هي النية و:", options: ["البسملة وغسل اليدين", "مسح القدمين", "غسل الوجه فوراً"], icon: "💧" },
+                    { q: "من آداب الطعام والشراب الأكل باليد:", options: ["اليمين", "اليسار", "المرتين"], icon: "🍚" },
+                    { q: "اسم والدة النبي محمد ﷺ هو:", options: ["آمنة بنت وهب", "خديجة بنت خويلد", "فاطمة الزهراء"], icon: "🌸" },
+                    { q: "من أركان الإيمان أن نؤمن بالله و:", options: ["ملائكته وكتبه ورسله", "المال فقط", "الدنيا"], icon: "🌟" },
+                    { q: "صلاة الفجر تتكون من:", options: ["ركعتين", "ثلاث ركعات", "أربع ركعات"], icon: "🌅" }
+                ],
+                "3": [
+                    { q: "ولد النبي محمد ﷺ في شهر ربيع الأول في:", options: ["عام الفيل", "عام الحزن", "عام الفتح"], icon: "📜" },
+                    { q: "صوم شهر رمضان هو الركن:", options: ["الرابع من أركان الإسلام", "الأول", "الخامس"], icon: "🌙" },
+                    { q: "من أسماء الله الحسنى الذي يرزق الكائنات كلها هو:", options: ["الرّزاق", "السميع", "البصير"], icon: "✨" },
+                    { q: "من الأخلاق الإسلامية عند التنافس أو اللعب:", options: ["الروح الرياضية وعدم الإيذاء", "الغضب", "الغش"], icon: "🤝" },
+                    { q: "السورة التي تعدل ثلث القرآن الكريم هي سورة:", options: ["الإخلاص", "الكوثر", "النصر"], icon: "📖" },
+                    { q: "صلاة الظهر والعصر والعشاء عدد ركعات كل منها المفروضة هو:", options: ["أربع ركعات", "ثلاث ركعات", "ركعتان"], icon: "🕌" },
+                    { q: "إماطة الأذى عن الطريق تعتبر نوعاً من أنواع:", options: ["الصدقة", "الواجبات الثقيلة", "اللعب"], icon: "🌱" },
+                    { q: "الصحابي الجليل الذي رافق النبي ﷺ في الهجرة هو:", options: ["أبو بكر الصديق", "عمر بن الخطاب", "عثمان بن عفان"], icon: "🤝" },
+                    { q: "معنى اسم الله (السميع):", options: ["أن الله يسمع كل أصوات المخلوقات", "أنه يرى الأشياء", "أنه يخلق العباد"], icon: "👂" },
+                    { q: "صلاة المغرب تتكون من:", options: ["ثلاث ركعات", "ركعتين", "أربع ركعات"], icon: "🌆" }
+                ],
+                "4": [
+                    { q: "الأمانة هي حفظ حقوق الآخرين وعدم:", options: ["تضييعها أو خيانتها", "احترامهم", "مساعدتهم"], icon: "🤝" },
+                    { q: "القرآن الكريم نزل هداية وتبياناً على قلب النبي ﷺ بوساطة الملك:", options: ["جبريل عليه السلام", "ميكائيل", "إسرافيل"], icon: "✨" },
+                    { q: "صلاة الجمعة تقام جماعة في المسجد وتتكون من:", options: ["خطبة وركعتين", "أربع ركعات بدون خطبة", "ثلاث ركعات"], icon: "🕌" },
+                    { q: "الاحترام والرفق بالحيوان يعتبر في الإسلام من دلايل:", options: ["الرحمة والأجر العظيم", "القسوة", "الإسراف"], icon: "🐾" },
+                    { q: "عدد أركان الإيمان في الإسلام هو:", options: ["ستة أركان", "خمسة أركان", "سبعة أركان"], icon: "⭐" },
+                    { q: "تسمى صلاة التراويح صلاة قيام الليل في شهر:", options: ["رمضان", "شعبان", "ذو الحجة"], icon: "🌙" },
+                    { q: "الحديث الشريف (المسلم من سلم المسلمون من...):", options: ["لسانه ويده", "ماله وبيته", "ثوبه وقلمه"], icon: "💬" },
+                    { q: "من صفات الرسول ﷺ قبل البعثة النبوية أنه كان يلقب بـ:", options: ["الصادق الأمين", "الكريم", "العزيز"], icon: "💎" },
+                    { q: "الإيمان بالكتب السماوية من أركان:", options: ["الإيمان", "الإسلام", "الإحسان"], icon: "📜" },
+                    { q: "من مبطلات الصلاة التي تضيع صحتها:", options: ["الأكل والحديث العمد", "الخشوع", "النظر لموضع السجود"], icon: "🚫" }
+                ],
+                "5": [
+                    { q: "إيتاء الزكاة هو إعطاء جزء محدد من المال لمستحقيه مثل:", options: ["الفقراء والمساكين", "الأغنياء", "التجار"], icon: "💰" },
+                    { q: "من أصحاب الكهف تعلمنا التمسك بـ:", options: ["الإيمان بالله الحق", "المال والكسل", "الهروب فقط"], icon: "📖" },
+                    { q: "الصلوات الخمس تكفر الذنوب وشرطها الأساسي إتقان:", options: ["الوضوء والنية الصادقة", "السرعة", "القوة البدنية"], icon: "✨" },
+                    { q: "التوكل على الله يعني:", options: ["الأخذ بالأسباب مع الاعتماد على الله", "الكسل دون عمل", "ترك العمل تماماً"], icon: "🌱" },
+                    { q: "أول مسجد بني في الإسلام هو مسجد:", options: ["قباء", "المركزي", "الأقصى"], icon: "🕌" },
+                    { q: "المعجزة الكبرى الخالدة للنبي محمد ﷺ هي:", options: ["القرآن الكريم", "شق القمر فقط", "نبع الماء"], icon: "📖" },
+                    { q: "من حقوق الجار في الإسلام:", options: ["كف الأذى وعيادته والإحسان إليه", "مضايقته", "إهماله"], icon: "🏡" },
+                    { q: "معنى الإحسان كما جاء في الحديث الشريف أن تعبد الله كأنك:", options: ["تراه فإن لم تكن تراه فإنه يراك", "في سفر", "تستمع فقط"], icon: "🌟" },
+                    { q: "ليلة القدر هي ليلة مباركة في شهر رمضان خير من:", options: ["ألف شهر", "مائة يوم", "سنة واحدة"], icon: "🌙" },
+                    { q: "كفالة اليتيم في الإسلام جزاؤها في الجنة:", options: ["مرافقة النبي ﷺ", "بيت عادي", "الأجر المحدود"], icon: "🤝" }
+                ],
+                "6": [
+                    { q: "الحج هو قصد بيت الله الحرام لمن استطاع إليه سبيلاً وهو الركن:", options: ["الخامس من أركان الإسلام", "الثالث", "الثاني"], icon: "🕋" },
+                    { q: "السنة النبوية الشريفة هي كل ما أُثر عن النبي ﷺ من:", options: ["قول أو فعل أو تقرير", "أحكام القراءة فقط", "التاريخ القديم"], icon: "📜" },
+                    { q: "العفو والتسامح عند القدرة من شيم:", options: ["المؤمنين الأقوياء", "الضعفاء", "التجار"], icon: "🤍" },
+                    { q: "من القواعد الفقهية الجليلة في الإسلام rule:", options: ["لا ضرر ولا ضرار", "الأولوية للقوي", "المنفعة الفردية"], icon: "⚖️" },
+                    { q: "الميقات الزماني لحج بيت الله الحرام هو في أشهر:", options: ["الحج (شوال، ذو القعدة، عشر ذو الحجة)", "رمضان", "محرم"], icon: "🗓️" },
+                    { q: "الصلح والعدل بين الناس يعتبر في الشريعة الإسلامية من أسباب:", options: ["المودة والمغفرة", "التنازع", "الضعف"], icon: "🤝" },
+                    { q: "كتابة السنة ونقل الأحاديث بدقة يسمى علم:", options: ["الحديث الشريف", "التفسير فقط", "التاريخ"], icon: "📚" },
+                    { q: "أول سفير في الإسلام أرسله النبي ﷺ للمدينة المنورة هو الصحابي:", options: ["مصعب بن عمير", "بلال بن رباح", "سلمان الفارسي"], icon: "👤" },
+                    { q: "حفظ اللسان عن الغيبة والنميمة من واجبات الأخلاق لأنها:", options: ["تزرع العداوة وتذهب الحسنات", "عمل عادي", "مفيدة"], icon: "🤐" },
+                    { q: "من الأوقات التي يُستجاب فيها الدعاء بإذن الله:", options: ["الثلث الأخير من الليل وعند السجود", "أثناء الأكل", "عند النوم العميق"], icon: "🤲" }
+                ]
+            },
+            geography: {
+                "1": [
+                    { q: "الجهة التي تشرق منها الشمس كل صباح هي جهة:", options: ["الشرق", "الغرب", "الشمال"], icon: "☀️" },
+                    { q: "تغيب الشمس في نهاية النهار من جهة:", options: ["الغرب", "الشرق", "الجنوب"], icon: "🌅" },
+                    { q: "من أنواع التضاريس المرتفعة جداً عن سطح الأرض:", options: ["الجبل", "السهل", "البحر"], icon: "⛰️" },
+                    { q: "الماء العذب الذي نشربه ونسقي منه النباتات يأتي من:", options: ["الأمطار والأنهار", "مياه البحر المالحة", "المصانع"], icon: "🌧️" },
+                    { q: "فصل السنة الذي تسقط فيه الأمطار وتشتد فيه البرودة هو:", options: ["الشتاء", "الصيف", "الربيع"], icon: "❄️" },
+                    { q: "فصل السنة الذي تتفتح فيه الأزهار وتعتدل درجات الحرارة هو:", options: ["الربيع", "الخريف", "الشتاء"], icon: "🌸" },
+                    { q: "الأرض التي نعيش عليها شكلها يشبه كروياً وهي عبارة عن:", options: ["كوكب الأرض", "نجم مضيء", "مكعب مسطح"], icon: "🌍" },
+                    { q: "الجهة المقابلة لجهة الشمال هي جهة:", options: ["الجنوب", "الشرق", "الغرب"], icon: "🧭" },
+                    { q: "تتساقط أوراق الأشجار وتجف في فصل:", options: ["الخريف", "الربيع", "الصيف"], icon: "🍂" },
+                    { q: "تجمع واسع من الماء المالح يسمى:", options: ["البحر أو المحيط", "النهر العذب", "الجدول"], icon: "🌊" }
+                ],
+                "2": [
+                    { q: "من الاتجاهات الأصلية الأربعة: الشمال، الجنوب، الشرق و:", options: ["الغرب", "الوسط", "الأعلى"], icon: "🧭" },
+                    { q: "المنطقة الواسعة المسطحة من الأرض وسهلة الزراعة تسمى:", options: ["السهل", "الجبل المرتفع", "الوادي العميق"], icon: "🌾" },
+                    { q: "جريان مائي عذب ينبع من الجبال ويصب في البحر يسمى:", options: ["النهر", "البحيرة المالحة", "البئر"], icon: "🌊" },
+                    { q: "الحالة الجوية اليومية لمنطقة معينة من حيث الحرارة والرياح تسمى:", options: ["الطقس", "المناخ العام", "التضاريس"], icon: "🌤️" },
+                    { q: "استخدام الطاقة الشمسية وطاقة الرياح يسمى استخدام الموارد:", options: ["المتجددة والنظيفة", "غير المتجددة", "الضارة"], icon: "🌱" },
+                    { q: "الأرض المنخفضة الواقعة بين جبلين أو تلتين تسمى:", options: ["الوادي", "الهضبة", "الجزيرة"], icon: "🏞️" },
+                    { q: "الأداة التي تستخدم لمعرفة اتجاه الشمال والجهات الأربع هي:", options: ["البوصلة", "الميزان", "المسطرة"], icon: "🧭" },
+                    { q: "مساحة من اليابسة تحيط بها المياه من جميع الجهات تسمى:", options: ["جزيرة", "شبه جزيرة", "بحيرة"], icon: "🏝️" },
+                    { q: "تتكون المياه المالحة على كوكب الأرض في:", options: ["البحار والمحيطات", "الأنهار الجارية", "الآبار الجوفية العذبة"], icon: "🌊" },
+                    { q: "فصل الصيف يتميز بدرجات حرارة تكون عادةً:", options: ["مرتفعة وشديدة الدفء", "منخفضة ومتجمدة", "معتدلة جداً مع ثلج"], icon: "☀️" }
+                ],
+                "3": [
+                    { q: "الأداة المخططة التي تمثل سطح الأرض أو جزءاً منها بشكل مصغر هي:", options: ["الخريطة", "المرآة", "الصورة الشخصية"], icon: "🗺️" },
+                    { q: "المحيطات عبارة عن مساحات واسعة جداً وعميقة من المياه:", options: ["المالحة", "العذبة", "المقطرة"], icon: "🌊" },
+                    { q: "الكتل القارية الواسعة جداً من اليابسة على سطح الأرض تسمى:", options: ["القارات", "التربة", "الجزر الصغيرة"], icon: "🌍" },
+                    { q: "من أشكال المياه العذبة السطحية المتجمعة بشكل محاط باليابسة:", options: ["البحيرة العذبة", "المحيط", "الخليج المالح"], icon: "💧" },
+                    { q: "الطبقة الصخرية التي تغطي سطح كوكب الأرض تسمى:", options: ["القشرة الأرضية", "الغلاف الجوي", "النواة السائلة"], icon: "🪨" },
+                    { q: "المكون الذي يمثل النسبة الأكبر من مساحة كوكب الأرض هو:", options: ["الماء (المحيطات والبحار)", "اليابسة", "الرمال الصحراوية"], icon: "🌊" },
+                    { q: "دوران الكرة الأرضية حول محورها دورة كاملة ينتج عنه:", options: ["تعاقب الليل والنهار", "فصول السنة الأربعة", "الكسوف فقط"], icon: "🌍" },
+                    { q: "المناطق التي يقل فيها تساقط الأمطار وتكثر فيها الرمال هي:", options: ["الصحارى", "الغابات الاستوائية", "المروج الخضراء"], icon: "🏜️" },
+                    { q: "الرمز أو الرسم الموجود على الخريطة لتوضيح الاتجاهات يسمى:", options: ["وردة الرياح (مؤشر الاتجاه)", "عنوان الخريطة", "مقياس الرسم"], icon: "🧭" },
+                    { q: "المحافظة على الموارد الطبيعية مثل المياه والنباتات يحمي:", options: ["البيئة والتوازن البيئي", "الطقس فقط", "وسائل النقل"], icon: "🌳" }
+                ],
+                "4": [
+                    { q: "دوران الأرض حول الشمس دورة كاملة يستغرق سنة وينتج عنه:", options: ["فصول السنة الأربعة", "الليل والنهار", "المد والجزر"], icon: "☀️" },
+                    { q: "خط الاستواء هو خط وهمي يقسم الكرة الأرضية إلى نصفين:", options: ["شمالي وجنوبي", "شرقي وغربي", "علوي وسفلي"], icon: "🌐" },
+                    { q: "من الموارد الطبيعية غير المتجددة التي نقتصد في استخدامها:", options: ["النفط والفحم الحجري", "طاقة الرياح", "الطاقة الشمسية"], icon: "⛽" },
+                    { q: "المناخ يمثل حالة الجو في منطقة معينة خلال فترة زمنية:", options: ["طويلة (سنوات أو أشهر)", "ساعات قليلة", "يوم واحد فقط"], icon: "🌤️" },
+                    { q: "الغابات المطيرة الاستوائية تتميز بتنوع حيوي واسع وأمطار:", options: ["غزيرة طوال العام", "شديدة الجفاف", "نادرة جداً"], icon: "🌧️" },
+                    { q: "تسمى عملية تسرب مياه الأمطار إلى باطن الأرض لتكوين المياه الجوفية بـ:", options: ["الترشيح / التغلغل", "التبخر", "التكاثف السريع"], icon: "💧" },
+                    { q: "دائرة العرض الرئيسية التي تقسم منتصف الكرة الأرضية هي:", options: ["خط الاستواء", "مدار السرطان", "خط غرينتش"], icon: "🌐" },
+                    { q: "تنتج ظاهرة المد والجزر في المحيطات والبحار بسبب جاذبية:", options: ["القمر والأرض", "الرياح فقط", "السفن"], icon: "🌊" },
+                    { q: "الرياح الموسمية المحملة بالأمطار تنشأ عادة بين:", options: ["اليابسة والماء (المحيط)", "الجبال فقط", "الصحراء فقط"], icon: "💨" },
+                    { q: "تعرف تعرية التربة بأنها انجراف الطبقة السطحية للتربة بفعل:", options: ["الرياح والمياه الجارية", "ضوء الشمس", "النباتات"], icon: "🍂" }
+                ],
+                "5": [
+                    { q: "القارة الكبرى من حيث المساحة وسكان العالم هي قارة:", options: ["آسيا", "أفريقيا", "أوروبا"], icon: "🌏" },
+                    { q: "الظاهرة التي تحدث عند احتجاب ضوء الشمس عن القمر بوساطة الأرض هي:", options: ["خسوف القمر", "كسوف الشمس", "الزلازل"], icon: "🌑" },
+                    { q: "طبقة الغلاف الجوي القريبة جداً من الأرض وتحدث فيها الظواهر الجوية هي:", options: ["التروبوسفير", "الستراتوسفير", "الثرموسفير"], icon: "☁️" },
+                    { q: "تتكون القشرة القارية للأرض بشكل أساسي من صخور:", options: ["الغرانيت والسيليكون", "الحديد المنصهر", "البازلت المائي"], icon: "🪨" },
+                    { q: "الأمواج البحرية الضخمة جداً الناتجة عن زلازل تحت البحر تسمى:", options: ["التسونامي", "المد العادي", "التيارات الهادئة"], icon: "🌊" },
+                    { q: "المحيط الأكبر مساحة وعمقاً في الكرة الأرضية هو المحيط:", options: ["الهادئ", "الأطلسي", "الهندي"], icon: "🌊" },
+                    { q: "خط الطول الأساسي لتحديد التوقيت الزمني على سطح الكرة الأرضية هو:", options: ["خط غرينتش", "خط الاستواء", "مدار الجدي"], icon: "⏱️" },
+                    { q: "تسمى الأراضي الصالحة للزراعة التي تروى بماء الأنهار والآبار بـ:", options: ["الأراضي المروية", "الصحارى الجافة", "المراعي البورية"], icon: "🌱" },
+                    { q: "القارة المتجمدة الجنوبية الخالية من السكان الدائمين هي قارة:", options: ["أنتاركتيكا", "أستراليا", "أوروبا"], icon: "❄️" },
+                    { q: "ظاهرة احتباس الحرارة في الغلاف الجوي للأرض تسمى:", options: ["الاحتباس الحراري", "التكاثف البيئي", "التعرية الصخرية"], icon: "🌡️" }
+                ],
+                "6": [
+                    { q: "تتكون كتل الصفائح التكتونية الصخرية التي تشكل غلاف الأرض الصلب في:", options: ["الغلاف الصخري (الليثوسفير)", "النواة الداخلية", "الغلاف الجوي"], icon: "🌍" },
+                    { q: "تسمى النقطة الواقعة على سطح الأرض مباشرة فوق بؤرة الزلزال بـ:", options: ["المركز السطحي للزلزال", "بؤرة الانكسار", "الصفيحة المائية"], icon: "⚠️" },
+                    { q: "التيارات البحرية المائية الدافئة والباردة تؤثر بشكل مباشر على:", options: ["مناخ المناطق الساحلية", "عمق المحيط فقط", "جاذبية الأرض"], icon: "🌊" },
+                    { q: "الكتلة الجبلية التي تخرج منها حمم منصهرة وقذائف صخرية تسمى:", options: ["البركان", "الزلزال", "الهضبة"], icon: "🌋" },
+                    { q: "مقياس ريختر العالمي يستخدم لقياس مقدار وتأثير:", options: ["قوة الزلازل", "سرعة الرياح", "درجة الحرارة"], icon: "📊" },
+                    { q: "تسمى حلقة الفوهات البركانية والنشاط الزلزالي حول المحيط الهادئ بـ:", options: ["حزام النار", "الدائرة القطبية", "خط الاستواء"], icon: "🔥" },
+                    { q: "تنشأ الأقاليم المناخية الاستوائية بالقرب من خط:", options: ["الاستواء", "القطب الشمالي", "غرينتش"], icon: "☀️" },
+                    { q: "النسبة التقريبية لمساحة اليابسة بالنسبة لسطح الكرة الأرضية هي:", options: ["29%", "71%", "50%"], icon: "🗺️" },
+                    { q: "العملية التي يتحول فيها الحجر الجيري بتأثير المياه الجوفية والحرارة تُعرف بـ:", options: ["التجوية الكيميائية", "التعرية الميكانيكية", "التبخر"], icon: "🪨" },
+                    { q: "المصادر غير التقليدية للمياه العذبة تشمل:", options: ["تحلية مياه البحر وإعادة تدوير المياه", "استنزاف المياه الجوفية", "قطع الأشجار"], icon: "💧" }
+                ]
+            },
+            english: {
+                "1": [
+                    { q: "ما معنى كلمة (Apple) باللغة العربية؟", options: ["تفاحة", "موزة", "برتقالة"], icon: "🍎" },
+                    { q: "ما الحرف الأول من كلمة (Cat)؟", options: ["C", "B", "A"], icon: "🐱" },
+                    { q: "الرقم (One) باللغة العربية يعني:", options: ["واحد", "اثنان", "ثلاثة"], icon: "🔢" },
+                    { q: "كلمة (Sun) تعني باللغة العربية:", options: ["شمس", "قمر", "نجمة"], icon: "☀️" },
+                    { q: "ما معنى الكلمة الإنجليزية (Dog)؟", options: ["كلب", "قطة", "عصفور"], icon: "🐶" },
+                    { q: "اللون (Red) باللغة العربية هو:", options: ["أحمر", "أزرق", "أخضر"], icon: "🔴" },
+                    { q: "الضمير (I) باللغة العربية يعني:", options: ["أنا", "هو", "نحن"], icon: "👤" },
+                    { q: "كلمة (Pen) تعني باللغة العربية:", options: ["قلم", "كتاب", "حقيبة"], icon: "✏️" },
+                    { q: "معنى التحية (Hello) هو:", options: ["مرحباً", "وداعاً", "شكراً"], icon: "👋" },
+                    { q: "الرقم (Three) باللغة العربية يعني:", options: ["ثلاثة", "خمسة", "اثنان"], icon: "🔢" }
+                ],
+                "2": [
+                    { q: "ما معنى كلمة (Book)؟", options: ["كتاب", "قلم", "حقيبة"], icon: "📚" },
+                    { q: "اختر الكلمة التي تعني رقم (5):", options: ["Five", "Four", "Three"], icon: "🔢" },
+                    { q: "كلمة (Milk) تعني باللغة العربية:", options: ["حليب", "ماء", "عصير"], icon: "🥛" },
+                    { q: "ما معنى كلمة (Teacher)؟", options: ["معلم / معلمة", "طالب", "طبيب"], icon: "👨‍🏫" },
+                    { q: "اللون (Blue) باللغة العربية هو:", options: ["أزرق", "أصفر", "أسود"], icon: "🔵" },
+                    { q: "جمع كلمة (Car) هو:", options: ["Cars", "Cares", "Caries"], icon: "🚗" },
+                    { q: "كلمة (Boy) تعني باللغة العربية:", options: ["ولد", "بنت", "رجل"], icon: "👦" },
+                    { q: "الضمير المستخدم للمفرد الغائب المذكر (هو):", options: ["He", "She", "It"], icon: "👤" },
+                    { q: "عكس كلمة (Big) هو:", options: ["Small", "Tall", "Short"], icon: "📏" },
+                    { q: "معنى عبارة (Good morning) هو:", options: ["صباح الخير", "مساء الخير", "تصبح على خير"], icon: "🌅" }
+                ],
+                "3": [
+                    { q: "الضمير الذي يُستخدم للتعبير عن المفرد المؤنث (هي):", options: ["She", "He", "It"], icon: "👧" },
+                    { q: "ما عكس كلمة (Happy) باللغة الإنكليزية؟", options: ["Sad", "Good", "Fast"], icon: "😊" },
+                    { q: "اختر الكلمة التي تعني أيام الأسبوع (Days):", options: ["Days", "Weeks", "Months"], icon: "🗓️" },
+                    { q: "معنى الفعل (To Run) هو:", options: ["يركض / يجري", "يأكل", "ينام"], icon: "🏃" },
+                    { q: "الفعل المساعد الذي يأتي مع (I) في الزمن الحاضر البسيط هو:", options: ["am", "is", "are"], icon: "✏️" },
+                    { q: "ما معنى كلمة (Water)؟", options: ["ماء", "عصير", "طعام"], icon: "💧" },
+                    { q: "كلمة (School) تعني باللغة العربية:", options: ["مدرسة", "بيت", "حديقة"], icon: "🏫" },
+                    { q: "اختر الجمع الصحيح لكلمة (Child):", options: ["Children", "Childs", "Childes"], icon: "👶" },
+                    { q: "الضمير (We) باللغة العربية يعني:", options: ["نحن", "هم", "أنتم"], icon: "👥" },
+                    { q: "كلمة (Friend) تعني باللغة العربية:", options: ["صديق", "عدو", "جار"], icon: "🤝" }
+                ],
+                "4": [
+                    { q: "جمع كلمة (Boy) باللغة الإنكليزية هو:", options: ["Boys", "Boyes", "Boies"], icon: "👥" },
+                    { q: "اختر الفعل الماضي الصحيح للفعل (Play):", options: ["Played", "Playes", "Playing"], icon: "⚽" },
+                    { q: "حرف الجر الذي يعني (في / داخل) هو:", options: ["In", "On", "Under"], icon: "📦" },
+                    { q: "معنى الجملة (I like reading) هو:", options: ["أنا أحب القراءة", "أنا أكتب الدرس", "أنا أقرأ الآن"], icon: "📖" },
+                    { q: "ما معنى كلمة (Beautiful)؟", options: ["جميل / جميلة", "قبيح", "صغير"], icon: "🌸" },
+                    { q: "حرف الجر الذي يعني (على / فوق السطح):", options: ["On", "In", "At"], icon: "📌" },
+                    { q: "اختر الضمير المناسب لغير العاقل المفرد (جماد/حيوان):", options: ["It", "They", "He"], icon: "📦" },
+                    { q: "معنى الفعل (Eat) هو:", options: ["يأكل", "يشرب", "يلعب"], icon: "🍽️" },
+                    { q: "اختر الكلمة الصحيحة للمقارنة: (Taller) تعني:", options: ["أطول من", "الأطول", "طويل"], icon: "📏" },
+                    { q: "السؤال بـ (Where) يبحث عن:", options: ["المكان", "الزمان", "السبب"], icon: "📍" }
+                ],
+                "5": [
+                    { q: "الصيغة الصحيحة للمقارنة: (Smarter) تعني:", options: ["أكثر ذكاءً من", "ذكي", "الأذكى"], icon: "🧠" },
+                    { q: "الفعل الماضي الشاذ الصحيح للفعل (Go) هو:", options: ["Went", "Goed", "Going"], icon: "🚶" },
+                    { q: "معنى أداة الاستفهام (When) هو:", options: ["متى (للزمن)", "أين (للمكان)", "لماذا"], icon: "⏰" },
+                    { q: "جمع كلمة (Man) بجمع التكسير الإنجليزي هو:", options: ["Men", "Mans", "Manes"], icon: "👨" },
+                    { q: "الضمير المتصل الملكي لـ (He) هو:", options: ["His", "Her", "My"], icon: "👤" },
+                    { q: "الصيغة التي تعبر عن التفضيل الأعلى (الأطول):", options: ["The tallest", "Taller", "Tall"], icon: "🏆" },
+                    { q: "الفعل الماضي من الفعل (Have / Has) هو:", options: ["Had", "Haved", "Having"], icon: "📝" },
+                    { q: "كلمة (Always) تعني في ظروف التكرار:", options: ["دائماً", "أبداً", "أحياناً"], icon: "🔄" },
+                    { q: "معنى الكلمة (Fast) هو:", options: ["سريع", "بطيء", "قوي"], icon: "⚡" },
+                    { q: "نستخدم مع الضمائر (They / We / You) الفعل المساعد:", options: ["Are", "Is", "Am"], icon: "👥" }
+                ],
+                "6": [
+                    { q: "في زمن المضارع المستمر نستخدم مع الضمير She الفعل المساعد:", options: ["is", "are", "am"], icon: "⏳" },
+                    { q: "الفعل الماضي الشاذ الصحيح للفعل (Write) هو:", options: ["Wrote", "Writed", "Writing"], icon: "✍️" },
+                    { q: "أداة الاستفهام التي تسأل عن السبب (Why) تعني بالعربية:", options: ["لماذا", "كيف", "ماذا"], icon: "❓" },
+                    { q: "اختر الكلمة ذات المعنى المناسب لـ (Always):", options: ["100% دائماً", "0% أبداً", "50% أحياناً"], icon: "📊" },
+                    { q: "الزمن المستخدم للتعبير عن حدث يحدث الآن لحظة الكلام هو:", options: ["Present Continuous", "Past Simple", "Future"], icon: "⏱️" },
+                    { q: "عكس كلمة (Expensive) هو:", options: ["Cheap", "High", "Rich"], icon: "💰" },
+                    { q: "اختر التصريف الثالث (Past Participle) للفعل (See):", options: ["Seen", "Saw", "Seeing"], icon: "👁️" },
+                    { q: "معنى أداة الربط (Because) باللغة العربية:", options: ["بسبب / لأن", "ولكن", "أو"], icon: "🔗" },
+                    { q: "الضمير الشامل للجمع الغائب (هم / هؤلاء) هو:", options: ["They", "We", "You"], icon: "👥" },
+                    { q: "الجملة الصحيحة للزمن المستقبل القريب باستخدام Going to هي:", options: ["I am going to study", "I going to study", "I will study yesterday"], icon: "🎯" }
+                ]
+            }
+        };
+
+        /* FETCH EXACTLY 10 UNIQUE NON-REPETITIVE QUESTIONS PER TEST */
+        function fetch10Questions(grade, subject) {
+            if (subject === 'math') return generateMathQuestions(grade);
+
+            let pool = [];
+            if (curriculumBank[subject] && curriculumBank[subject][grade]) {
+                pool = curriculumBank[subject][grade];
+            } else if (curriculumBank[subject] && curriculumBank[subject]["1"]) {
+                pool = curriculumBank[subject]["1"];
+            }
+
+            // Shuffle pool and take top 10 unique items without duplication
+            let shuffledPool = shuffleArray(pool);
+            let selected = shuffledPool.slice(0, 10);
+
+            return selected.map(qObj => prepareQuestion(qObj));
+        }
+
+        /* NAVIGATION & CONFIRMATION LOGIC */
+        function handleNavigation(action) {
+            if (isGameActive) {
+                const confirmExit = confirm("⚠️ تنبيه: هل تريد إنهاء الاختبار الحالي؟\nسيتم إلغاء التحدي والعودة للقائمة.");
+                if (confirmExit) {
+                    isGameActive = false;
+                    score = 0;
+                    action();
+                }
+            } else {
+                action();
+            }
+        }
+
+        function switchClass(grade) {
+            currentGrade = grade;
+            document.getElementById('class-select').value = grade;
+            document.getElementById('active-grade-badge').innerText = `الصف ${getGradeName(grade)}`;
+            document.getElementById('welcome-title').innerText = `منهاج الصف ${getGradeName(grade)} الابتدائي`;
+
+            for (let i = 1; i <= 6; i++) {
+                const btn = document.getElementById(`gbtn-${i}`);
+                if (btn) {
+                    btn.className = (i.toString() === grade) 
+                        ? "grade-btn px-3.5 py-1.5 rounded-xl font-bold text-xs md:text-sm grade-active shadow" 
+                        : "grade-btn px-3.5 py-1.5 rounded-xl font-bold text-xs md:text-sm grade-inactive hover:bg-slate-100";
+                }
+            }
+            renderSubjects();
+            goToHome();
+        }
+
+        function getGradeName(g) {
+            const names = {"1": "الأول", "2": "الثاني", "3": "الثالث", "4": "الرابع", "5": "الخامس", "6": "السادس"};
+            return names[g] || g;
+        }
+
+        function renderSubjects() {
+            const grid = document.getElementById('subjects-grid');
+            grid.innerHTML = "";
+            Object.keys(subjectMeta).forEach(key => {
+                const sub = subjectMeta[key];
+                const card = document.createElement('div');
+                card.className = "custom-card p-4 flex flex-col justify-between items-center text-center shadow-sm bg-white hover:border-teal-500";
+                card.innerHTML = `
+                    <div class="text-3xl mb-2">${sub.icon}</div>
+                    <h3 class="text-base font-black mb-1 text-slate-800">${sub.title}</h3>
+                    <p class="text-xs text-slate-500 font-bold mb-4">${sub.desc}</p>
+                    <button onclick="startQuiz('${key}')" class="play-btn w-full py-2.5 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
+                        <i class="fa-solid fa-play text-xs"></i> ابدأ الاختبار (10 أسئلة)
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function goToHome() {
+            isGameActive = false;
+            document.getElementById('screen-subjects').classList.remove('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+        }
+
+        function startQuiz(subjectKey) {
+            currentSubjectKey = subjectKey;
+            questions = fetch10Questions(currentGrade, subjectKey);
+            currentIndex = 0;
+            score = 0;
+            isGameActive = true;
+
+            document.getElementById('screen-subjects').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            if (currentIndex >= questions.length) {
+                finishQuiz();
+                return;
+            }
+
+            const qData = questions[currentIndex];
+            document.getElementById('game-progress-text').innerText = `${currentIndex + 1} / ${questions.length}`;
+            document.getElementById('game-score').innerText = score;
+            document.getElementById('game-progress-bar').style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+
+            document.getElementById('question-icon').innerText = qData.icon;
+            document.getElementById('question-text').innerText = qData.q;
+
+            const answersContainer = document.getElementById('answers-container');
+            answersContainer.innerHTML = "";
+            document.getElementById('feedback-message').classList.add('hidden');
+
+            qData.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "play-btn py-3 px-4 text-sm font-bold text-right rounded-xl flex justify-between items-center bg-slate-100 text-slate-800 hover:bg-teal-600 hover:text-white border border-slate-200 transition";
+                btn.innerHTML = `<span>${optText}</span> <i class="fa-regular fa-circle text-xs opacity-40"></i>`;
+                btn.onclick = () => checkAnswer(idx);
+                answersContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            const qData = questions[currentIndex];
+            const feedback = document.getElementById('feedback-message');
+            feedback.classList.remove('hidden');
+
+            const btns = document.getElementById('answers-container').querySelectorAll('button');
+            btns.forEach(b => b.disabled = true);
+
+            if (selectedIndex === qData.answer) {
+                score += 1;
+                playSound('correct');
+                feedback.className = "mt-5 p-2.5 rounded-xl font-bold text-xs md:text-sm bg-emerald-600 text-white block";
+                feedback.innerText = "إجابة صحيحة وممتازة! ✨";
+            } else {
+                playSound('wrong');
+                feedback.className = "mt-5 p-2.5 rounded-xl font-bold text-xs md:text-sm bg-rose-600 text-white block";
+                feedback.innerText = `إجابة خاطئة ❌. الإجابة الصحيحة هي: ${qData.options[qData.answer]}`;
+            }
+
+            document.getElementById('game-score').innerText = score;
+
+            setTimeout(() => {
+                currentIndex++;
+                renderQuestion();
+            }, 1200);
+        }
+
+        function restartCurrentGame() {
+            if (currentSubjectKey) startQuiz(currentSubjectKey);
+            else goToHome();
+        }
+
+        function finishQuiz() {
+            isGameActive = false;
+            globalStars += score * 10;
+            document.getElementById('global-stars').innerText = globalStars;
+
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            const sName = document.getElementById('student-name-input').value.trim();
+            document.getElementById('cert-student-name').innerText = sName ? sName : "البطل المتميز";
+            document.getElementById('cert-subject-name').innerText = subjectMeta[currentSubjectKey].title;
+            document.getElementById('cert-grade-name').innerText = `الصف ${getGradeName(currentGrade)}`;
+            document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
+
+            if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+
+        window.onload = () => { switchClass('1'); };
+    </script>
+</body>
+</html>
